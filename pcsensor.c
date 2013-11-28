@@ -25,7 +25,7 @@
  * 
  */
 
-
+#include <syslog.h>
 
 #include <usb.h>
 #include <stdio.h>
@@ -35,7 +35,7 @@
 #include <errno.h>
 #include <signal.h> 
  
- 
+
 #define VERSION "0.0.1"
  
 #define VENDOR_ID  0x0c45
@@ -61,6 +61,7 @@ static int debug=0;
 static int seconds=5;
 static int formato=0;
 static int mrtg=0;
+static int simple=0;
 
 
 void bad(const char *why) {
@@ -315,7 +316,7 @@ int main( int argc, char **argv) {
      struct tm *local;
      time_t t;
 
-     while ((c = getopt (argc, argv, "mfcvhl::")) != -1)
+     while ((c = getopt (argc, argv, "mfcvhls::")) != -1)
      switch (c)
        {
        case 'v':
@@ -329,6 +330,10 @@ int main( int argc, char **argv) {
          break;
        case 'm':
          mrtg=1;
+         break;
+       case 's':
+         simple=1;
+         setbuf(stdout, NULL);
          break;
        case 'l':
          if (optarg!=NULL){
@@ -354,6 +359,7 @@ int main( int argc, char **argv) {
 	 printf("          -c output only in Celsius\n");
 	 printf("          -f output only in Fahrenheit\n");
 	 printf("          -m output for mrtg integration\n");
+	 printf("          -s simple output to be redirected to scripts\n");
   
 	 exit(EXIT_FAILURE);
        default:
@@ -412,6 +418,12 @@ int main( int argc, char **argv) {
                           local->tm_min);
 
               printf("pcsensor\n");
+           } else if (simple) {
+              if (formato==2) {
+                  printf("%.2f\n", (9.0 / 5.0 * tempc + 32.0));
+              } else {
+                  printf("%.2f\n", tempc);
+              }
            } else {
               printf("%04d/%02d/%02d %02d:%02d:%02d ", 
                           local->tm_year +1900, 
