@@ -333,7 +333,8 @@ int main( int argc, char **argv) {
          break;
        case 's':
          simple=1;
-         setbuf(stdout, NULL);
+         setlogmask (LOG_UPTO (LOG_NOTICE));
+         openlog ("pcsensor", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
          break;
        case 'l':
          if (optarg!=NULL){
@@ -359,7 +360,7 @@ int main( int argc, char **argv) {
 	 printf("          -c output only in Celsius\n");
 	 printf("          -f output only in Fahrenheit\n");
 	 printf("          -m output for mrtg integration\n");
-	 printf("          -s simple output to be redirected to scripts\n");
+	 printf("          -s output to syslog\n");
   
 	 exit(EXIT_FAILURE);
        default:
@@ -420,9 +421,9 @@ int main( int argc, char **argv) {
               printf("pcsensor\n");
            } else if (simple) {
               if (formato==2) {
-                  printf("%.2f\n", (9.0 / 5.0 * tempc + 32.0));
+                  syslog (LOG_NOTICE, "%.2f\n", (9.0 / 5.0 * tempc + 32.0));
               } else {
-                  printf("%.2f\n", tempc);
+                  syslog (LOG_NOTICE, "%.2f\n", tempc);
               }
            } else {
               printf("%04d/%02d/%02d %02d:%02d:%02d ", 
@@ -450,6 +451,8 @@ int main( int argc, char **argv) {
      usb_release_interface(lvr_winusb, INTERFACE2);
      
      usb_close(lvr_winusb); 
+
+     closelog();
       
      return 0; 
 }
